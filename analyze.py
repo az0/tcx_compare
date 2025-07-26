@@ -28,7 +28,9 @@ class TCXHeartRateAnalyzer:
     def read_tcx_file(self, file_path):
         """Read a TCX file and extract heart rate data with timestamps."""
         try:
-            tcx_data = self.tcx_reader.read(file_path)
+            # Read TCX file with only_gps=False to include all trackpoints with heart rate data
+            # even if they don't have GPS coordinates
+            tcx_data = self.tcx_reader.read(file_path, only_gps=False)
 
             # Extract trackpoints with heart rate data
             heart_rate_data = []
