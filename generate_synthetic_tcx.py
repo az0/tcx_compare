@@ -26,10 +26,13 @@ class SyntheticTCXGenerator:
         self.device_configs = {
             'device1': {
                 'bias': random.uniform(-10, 10),  # Persistent bias in bpm
-                'noise_std': random.uniform(1, 3),  # Standard deviation of noise
-                'gap_probability': random.uniform(0.01, 0.05),  # Probability of gap
+                # Standard deviation of noise
+                'noise_std': random.uniform(1, 3),
+                # Probability of gap
+                'gap_probability': random.uniform(0.01, 0.05),
                 'max_gap_seconds': random.randint(3, 30),  # Max gap duration
-                'duplicate_probability': random.uniform(0.05, 0.15)  # Duplicate timestamps
+                # Duplicate timestamps
+                'duplicate_probability': random.uniform(0.05, 0.15)
             },
             'device2': {
                 'bias': random.uniform(-10, 10),  # Different bias
@@ -59,21 +62,28 @@ class SyntheticTCXGenerator:
 
             # Base heart rate based on exercise phase
             if progress < 0.2:  # Warmup
-                base_hr = self.true_hr_min + (self.true_hr_max - self.true_hr_min) * (progress / 0.2) * 0.5
+                base_hr = self.true_hr_min + \
+                    (self.true_hr_max - self.true_hr_min) * (progress / 0.2) * 0.5
             elif progress < 0.5:  # First half of exercise
                 exercise_progress = (progress - 0.2) / 0.3
-                base_hr = self.true_hr_min + (self.true_hr_max - self.true_hr_min) * (0.5 + 0.5 * exercise_progress)
+                base_hr = self.true_hr_min + \
+                    (self.true_hr_max - self.true_hr_min) * \
+                    (0.5 + 0.5 * exercise_progress)
             elif progress < 0.8:  # Second half of exercise
                 exercise_progress = (progress - 0.5) / 0.3
-                base_hr = self.true_hr_max - (self.true_hr_max - self.true_hr_min) * 0.2 * exercise_progress
+                base_hr = self.true_hr_max - \
+                    (self.true_hr_max - self.true_hr_min) * \
+                    0.2 * exercise_progress
             else:  # Cooldown
                 cooldown_progress = (progress - 0.8) / 0.2
-                base_hr = self.true_hr_max * 0.8 - (self.true_hr_max * 0.8 - self.true_hr_min) * cooldown_progress
+                base_hr = self.true_hr_max * 0.8 - \
+                    (self.true_hr_max * 0.8 - self.true_hr_min) * cooldown_progress
 
             # Add some natural variability
             variability = math.sin(i * 0.1) * 3 + math.sin(i * 0.05) * 2
             true_hr_value = base_hr + variability
-            true_hr.append(max(self.true_hr_min, min(self.true_hr_max, true_hr_value)))
+            true_hr.append(max(self.true_hr_min, min(
+                self.true_hr_max, true_hr_value)))
             timestamps.append(current_time)
 
         return timestamps, true_hr
@@ -84,7 +94,9 @@ class SyntheticTCXGenerator:
 
         for _ in range(1, length):
             # Autocorrelated noise: current noise depends on previous noise
-            new_noise = correlation_factor * noise[-1] + random.gauss(0, std_dev * math.sqrt(1 - correlation_factor**2))
+            new_noise = correlation_factor * \
+                noise[-1] + random.gauss(0, std_dev *
+                                         math.sqrt(1 - correlation_factor**2))
             noise.append(new_noise)
 
         return noise
@@ -94,13 +106,15 @@ class SyntheticTCXGenerator:
         device_timestamps = []
         device_hr = []
 
-        noise = self.generate_autocorrelated_noise(len(true_hr), device_config['noise_std'])
+        noise = self.generate_autocorrelated_noise(
+            len(true_hr), device_config['noise_std'])
 
         i = 0
         while i < len(true_timestamps):
             # Check for gap
             if random.random() < device_config['gap_probability']:
-                gap_duration = random.randint(1, device_config['max_gap_seconds'])
+                gap_duration = random.randint(
+                    1, device_config['max_gap_seconds'])
                 i += gap_duration
                 continue
 
@@ -108,7 +122,8 @@ class SyntheticTCXGenerator:
                 # Add device bias and noise
                 true_value = true_hr[i]
                 device_value = true_value + device_config['bias'] + noise[i]
-                device_value = max(40, min(220, device_value))  # Clamp to reasonable range
+                # Clamp to reasonable range
+                device_value = max(40, min(220, device_value))
 
                 device_timestamps.append(true_timestamps[i])
                 device_hr.append(device_value)
@@ -152,9 +167,11 @@ class SyntheticTCXGenerator:
         """Create TCX XML structure."""
         # Create root TrainingCenterDatabase
         root = ET.Element('TrainingCenterDatabase')
-        root.set('xmlns', 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2')
+        root.set(
+            'xmlns', 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2')
         root.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-        root.set('xsi:schemaLocation', 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd')
+        root.set('xsi:schemaLocation',
+                 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd')
 
         # Activities
         activities = ET.SubElement(root, 'Activities')
@@ -223,7 +240,8 @@ class SyntheticTCXGenerator:
     def save_tcx_file(self, xml_root, filename):
         """Save the TCX XML to a file."""
         # Pretty print the XML
-        xml_str = minidom.parseString(ET.tostring(xml_root)).toprettyxml(indent="  ")
+        xml_str = minidom.parseString(
+            ET.tostring(xml_root)).toprettyxml(indent="  ")
 
         # Remove empty lines
         lines = [line for line in xml_str.split('\n') if line.strip()]
@@ -239,7 +257,8 @@ class SyntheticTCXGenerator:
 
         # Generate true heart rate
         duration_seconds = self.exercise_duration_minutes * 60
-        true_timestamps, true_hr = self.generate_true_heart_rate(duration_seconds)
+        true_timestamps, true_hr = self.generate_true_heart_rate(
+            duration_seconds)
 
         # Generate position data
         positions = self.generate_position_data(duration_seconds)
@@ -266,17 +285,23 @@ class SyntheticTCXGenerator:
 
         # Print generation summary
         print("Generated synthetic TCX files:")
-        print(f"  Device 1: {len(device1_hr)} records, bias: {self.device_configs['device1']['bias']:.1f} bpm")
-        print(f"  Device 2: {len(device2_hr)} records, bias: {self.device_configs['device2']['bias']:.1f} bpm")
-        print(f"  Average absolute difference: {sum(abs(a - b) for a, b in zip(device1_hr, device2_hr[:len(device1_hr)])) / min(len(device1_hr), len(device2_hr)):.1f} bpm")
+        print(
+            f"  Device 1: {len(device1_hr)} records, bias: {self.device_configs['device1']['bias']:.1f} bpm")
+        print(
+            f"  Device 2: {len(device2_hr)} records, bias: {self.device_configs['device2']['bias']:.1f} bpm")
+        print(
+            f"  Average absolute difference: {sum(abs(a - b) for a, b in zip(device1_hr, device2_hr[:len(device1_hr)])) / min(len(device1_hr), len(device2_hr)):.1f} bpm")
 
 
 def main():
     """Main function to generate synthetic TCX files."""
 
-    parser = argparse.ArgumentParser(description='Generate synthetic TCX files with heart rate data')
-    parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
-    parser.add_argument('--output-dir', type=str, default='.', help='Output directory for generated files')
+    parser = argparse.ArgumentParser(
+        description='Generate synthetic TCX files with heart rate data')
+    parser.add_argument('--seed', type=int,
+                        help='Random seed for reproducibility')
+    parser.add_argument('--output-dir', type=str, default='.',
+                        help='Output directory for generated files')
     args = parser.parse_args()
 
     generator = SyntheticTCXGenerator(seed=args.seed)

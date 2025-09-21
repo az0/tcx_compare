@@ -90,7 +90,8 @@ class TCXHeartRateAnalyzer:
             return
 
         # Create subplots for heart rates and difference with 16:9 aspect ratio
-        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 9), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 9),
+                                     sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 
         # Plot 1: Heart rate comparison
         if not self.device1_data.empty:
@@ -116,7 +117,8 @@ class TCXHeartRateAnalyzer:
             ax2.axhline(y=0, color='black', linestyle='--', alpha=0.5)
             ax2.set_ylabel('Difference (bpm)')
             ax2.set_xlabel('Time')
-            ax2.set_title(f'Heart Rate Difference ({self.device1_name} - {self.device2_name})')
+            ax2.set_title(
+                f'Heart Rate Difference ({self.device1_name} - {self.device2_name})')
             ax2.grid(True, alpha=0.3)
             ax2.tick_params(axis='x', rotation=45)
 
@@ -210,10 +212,14 @@ class TCXHeartRateAnalyzer:
 
         if 'difference' in stats:
             print(f"\nDifference ({self.device1_name} - {self.device2_name}):")
-            print(f"  Min Difference: {stats['difference']['min_diff']:.1f} bpm")
-            print(f"  Avg Difference: {stats['difference']['avg_diff']:.1f} bpm")
-            print(f"  Max Difference: {stats['difference']['max_diff']:.1f} bpm")
-            print(f"  Avg Absolute Difference: {stats['difference']['abs_avg_diff']:.1f} bpm")
+            print(
+                f"  Min Difference: {stats['difference']['min_diff']:.1f} bpm")
+            print(
+                f"  Avg Difference: {stats['difference']['avg_diff']:.1f} bpm")
+            print(
+                f"  Max Difference: {stats['difference']['max_diff']:.1f} bpm")
+            print(
+                f"  Avg Absolute Difference: {stats['difference']['abs_avg_diff']:.1f} bpm")
             print(f"  Matching timestamps: {stats['difference']['count']}")
 
 
