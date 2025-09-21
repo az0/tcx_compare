@@ -13,6 +13,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tcxreader.tcxreader import TCXReader
 
+MIN_HEART_RATE = 30
+
 
 class TCXHeartRateAnalyzer:
     """TCX Heart Rate Analyzer"""
@@ -38,7 +40,7 @@ class TCXHeartRateAnalyzer:
             # tcxreader returns a TCXExercise object with laps attribute
             for lap in tcx_data.laps:
                 for trackpoint in lap.trackpoints:
-                    if hasattr(trackpoint, 'hr_value') and trackpoint.hr_value is not None:
+                    if hasattr(trackpoint, 'hr_value') and trackpoint.hr_value is not None and trackpoint.hr_value >= MIN_HEART_RATE:
                         heart_rate_data.append({
                             'timestamp': trackpoint.time,
                             'heart_rate': trackpoint.hr_value,
