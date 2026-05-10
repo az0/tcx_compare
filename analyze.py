@@ -10,7 +10,9 @@ import sys
 
 # third-party import
 import pandas as pd
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from dateutil import tz
 from tcxreader.tcxreader import TCXReader
 
 MIN_HEART_RATE = 30
@@ -53,7 +55,11 @@ class TCXHeartRateAnalyzer:
             # Convert to DataFrame and handle duplicate timestamps
             df = pd.DataFrame(heart_rate_data)
             if not df.empty:
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                # TCX timestamps are UTC; convert to local time for display
+                df['timestamp'] = pd.to_datetime(
+                    df['timestamp'], utc=True)
+                df['timestamp'] = df['timestamp'].dt.tz_convert(
+                    tz.tzlocal()).dt.tz_localize(None)
                 df = df.sort_values('timestamp')
 
                 # Handle duplicate timestamps by averaging heart rate
@@ -116,11 +122,17 @@ class TCXHeartRateAnalyzer:
                      color='red', alpha=0.7, linewidth=1)
             ax2.axhline(y=0, color='black', linestyle='--', alpha=0.5)
             ax2.set_ylabel('Difference (bpm)')
-            ax2.set_xlabel('Time')
+            date_label = diff_data['timestamp'].iloc[0].strftime('%Y-%m-%d')
+            ax2.set_xlabel(f'Time ({date_label})')
             ax2.set_title(
                 f'Heart Rate Difference ({self.device1_name} - {self.device2_name})')
             ax2.grid(True, alpha=0.3)
             ax2.tick_params(axis='x', rotation=45)
+
+        # Use HH:MM formatter so the axis is unambiguous
+        time_formatter = mdates.DateFormatter('%H:%M')
+        ax1.xaxis.set_major_formatter(time_formatter)
+        ax2.xaxis.set_major_formatter(time_formatter)
 
         plt.tight_layout()
         plt.savefig('heart_rate_analysis.png', dpi=300)
